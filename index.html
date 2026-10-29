@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stand With Us Thermometer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Poppins:wght@500;600;700&display=swap">
+<style>
+/* Stream overlay: transparent background, one vertical thermometer, navy/gold to match the campaign art.
+   Add to OBS / Streamlabs / StreamYard as a Browser Source at 400 x 1000. */
+:root{
+  --navy:#0B1F3A; --navy-2:#132C50;
+  --gold:#C9A227; --gold-2:#F1D36A;
+  --cream:#F5EFE0; --muted:#A9B8CF;
+  --glass:rgba(255,255,255,.10); --glass-edge:rgba(255,255,255,.28);
+  --display:"Lora",Georgia,serif; --ui:"Poppins","Helvetica Neue",Arial,sans-serif;
+  --w:400px; --h:1000px;
+}
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+body{width:var(--w);height:var(--h);font-family:var(--ui);color:var(--cream);-webkit-font-smoothing:antialiased}
+body.bg-navy{background:var(--navy)}
+.wrap{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:22px 0 18px;box-sizing:border-box;gap:8px}
+.shadow{filter:drop-shadow(0 3px 10px rgba(0,0,0,.55))}
+
+.head{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--gold-2)}
+.raised{font-family:var(--display);font-weight:700;font-size:3.5rem;line-height:1;color:var(--gold-2);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.of{font-size:.92rem;color:var(--cream);opacity:.9}
+.of b{font-weight:600;font-variant-numeric:tabular-nums}
+.pill{
+  margin-top:4px;display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;
+  background:var(--navy-2);border:1px solid var(--gold);font-weight:700;font-size:1.05rem;color:var(--gold-2);font-variant-numeric:tabular-nums;
+}
+
+.thermo{position:relative;flex:1;width:100%;display:flex;justify-content:center;margin-top:10px}
+.tube{
+  position:absolute;left:50%;transform:translateX(-50%);
+  top:0;bottom:140px;width:74px;
+  border-radius:37px 37px 14px 14px;
+  background:linear-gradient(90deg,rgba(255,255,255,.04),var(--glass) 40%,rgba(255,255,255,.03));
+  border:3px solid var(--glass-edge);
+  box-shadow:inset 0 0 0 2px rgba(11,31,58,.6),0 6px 24px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.fill{
+  position:absolute;left:0;right:0;bottom:0;height:0%;
+  background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 55%,var(--gold) 100%);
+  transition:height 1.8s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 0 30px rgba(241,211,106,.55);
+}
+.fill::before{content:"";position:absolute;left:14px;top:0;bottom:0;width:10px;background:rgba(255,255,255,.35);border-radius:6px;filter:blur(1px)}
+.fill::after{content:"";position:absolute;left:0;right:0;top:-6px;height:12px;border-radius:50%;background:var(--gold-2);box-shadow:0 0 18px rgba(241,211,106,.8)}
+.bulb{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,var(--gold-2) 0%,var(--gold) 55%,#9c7b14 100%);
+  border:3px solid var(--glass-edge);
+  box-shadow:0 0 40px rgba(241,211,106,.45),0 10px 30px rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;
+  color:var(--navy);text-align:center;
+}
+.bulb .n{font-family:var(--display);font-weight:700;font-size:1.65rem;line-height:1;font-variant-numeric:tabular-nums}
+.bulb .l{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+.bulb.empty .n{font-size:1.1rem}
+
+.ticks{position:absolute;left:calc(50% + 48px);top:0;bottom:140px;width:150px;font-size:.78rem;color:var(--cream);font-variant-numeric:tabular-nums}
+.tick{position:absolute;left:0;display:flex;align-items:center;gap:8px;transform:translateY(-50%);white-space:nowrap}
+.tick::before{content:"";width:16px;height:2px;background:var(--gold);border-radius:1px}
+.tick.minor::before{width:9px;background:var(--glass-edge)}
+.tick.minor{color:var(--muted);font-size:.68rem}
+.tick.goal{font-weight:700;color:var(--gold-2)}
+
+.burst{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-family:var(--display);font-weight:700;font-size:1.6rem;color:var(--gold-2);pointer-events:none;
+  animation:rise 2.6s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.6);
+}
+@keyframes rise{0%{opacity:0;translate:0 10px}15%{opacity:1}100%{opacity:0;translate:0 -70px}}
+
+.foot{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:4px}
+.url{font-size:.62rem;letter-spacing:.02em;color:var(--cream);opacity:.85;white-space:nowrap}
+.status{display:flex;align-items:center;gap:6px;font-size:.62rem;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.dot.live{background:#7CC98B;box-shadow:0 0 8px rgba(124,201,139,.9)}
+.dot.err{background:#E07A5F}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap shadow" id="wrap">
+  <div class="head">
+    <div class="eyebrow">Stand With Us</div>
+    <div class="raised" id="raised">$0</div>
+    <div class="of">raised of <b id="goal">$250,000</b></div>
+    <div class="pill" id="pct">0%</div>
+  </div>
+
+  <div class="thermo">
+    <div class="ticks" id="ticks"></div>
+    <div class="tube"><div class="fill" id="fill"></div></div>
+      <div class="bulb" id="bulb"><div class="n" id="donors">GIVE</div><div class="l" id="donorsL">today</div></div>
+  </div>
+
+  <div class="foot">
+    <div class="url">givesendgo.com/stand-with-nolan-wells-targeted-friends</div>
+    <div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">connecting&hellip;</span></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const CAMPAIGN = "https://www.givesendgo.com/stand-with-nolan-wells-targeted-friends";
+  const INTERVAL = Math.max(15, Number(q.get("interval")) || 20) * 1000;   // seconds between checks
+  const DEMO = q.get("demo") === "1";
+  const $ = id => document.getElementById(id);
+  const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
+
+  if (q.get("bg") === "navy") document.body.classList.add("bg-navy");
+  if (q.get("status") === "0") $("status").hidden = true;
+  if (q.get("scale")) { document.body.style.transformOrigin = "top left"; document.body.style.transform = "scale(" + q.get("scale") + ")"; }
+
+  // Last known figure: URL overrides win, then what this browser saw last time, then the confirmed fallback.
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("swu-thermo") || "null"); } catch (e) {}
+  let state = {
+    raised: Number(q.get("raised")) || (saved && saved.raised) || 189723,
+    goal:   Number(q.get("goal"))   || (saved && saved.goal)   || 250000,
+    donors: q.get("donors") != null ? Number(q.get("donors")) : (saved ? saved.donors : null)
+  };
+  const locked = { raised: q.has("raised"), goal: q.has("goal"), donors: q.has("donors") };
+  let shown = 0;
+
+  function countUp(from, to) {
+    const el = $("raised"), t0 = performance.now(), ms = 1800;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt(from + (to - from) * e);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function drawTicks(goal) {
+    const t = $("ticks"); t.innerHTML = "";
+    for (let i = 0; i <= 10; i++) {
+      const f = i / 10, s = document.createElement("div");
+      s.className = "tick" + (i % 5 ? " minor" : "") + (i === 10 ? " goal" : "");
+      s.style.top = (100 - f * 100) + "%";
+      s.textContent = i % 5 ? "" : (i === 10 ? "GOAL " + fmt(goal) : fmt(goal * f));
+      t.appendChild(s);
+    }
+  }
+
+  function render(prev) {
+    const { raised, goal, donors } = state;
+    const pctRaw = goal ? raised / goal * 100 : 0, pct = Math.min(100, pctRaw);
+    countUp(prev, raised);
+    $("goal").textContent = fmt(goal);
+    $("fill").style.height = pct + "%";
+    $("pct").textContent = pctRaw.toFixed(pctRaw >= 100 ? 0 : 1) + "% funded";
+    const b = $("bulb");
+    if (donors) { b.classList.remove("empty"); $("donors").textContent = Number(donors).toLocaleString("en-US"); $("donorsL").textContent = "supporters"; }
+    else { b.classList.add("empty"); $("donors").textContent = "GIVE"; $("donorsL").textContent = "today"; }
+    drawTicks(goal);
+    if (prev && raised > prev) {
+      const el = document.createElement("div");
+      el.className = "burst"; el.textContent = "+" + fmt(raised - prev);
+      el.style.top = (100 - pct) + "%";
+      document.querySelector(".thermo").appendChild(el);
+      setTimeout(() => el.remove(), 2800);
+    }
+    try { localStorage.setItem("swu-thermo", JSON.stringify(state)); } catch (e) {}
+  }
+
+  let lastOk = 0;
+  function status(text, cls) {
+    $("statusText").textContent = text;
+    $("dot").className = "dot" + (cls ? " " + cls : "");
+  }
+  setInterval(() => { if (lastOk) status("live · " + Math.round((Date.now() - lastOk) / 1000) + "s ago", "live"); }, 5000);
+
+  // ---- reading the GiveSendGo page ----
+  // The page is public, but a browser can't read another site directly, so it goes through
+  // read-only relay services. Each is tried in turn; the first one that answers wins.
+  const RELAYS = [
+    u => "https://r.jina.ai/" + u,
+    u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+    u => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u),
+    u => "https://corsproxy.io/?" + encodeURIComponent(u)
+  ];
+  let relay = 0;
+
+  function parseCampaign(text) {
+    if (!text) return null;
+    const t = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    const low = t.toLowerCase();
+    const nearest = (pos, kw) => { let best = Infinity, r = new RegExp(kw, "g"), k; while ((k = r.exec(low))) best = Math.min(best, Math.abs(k.index - pos)); return best; };
+    const re = /\$\s?(\d{1,3}(?:,\d{3})+|\d{3,})(?:\.\d{2})?/g, hits = []; let m;
+    while ((m = re.exec(t))) {
+      const dr = nearest(m.index, "raised|donated|collected"), dg = nearest(m.index, "goal|target");
+      hits.push({ val: Number(m[1].replace(/,/g, "")), raised: dr < 90 && dr <= dg, goal: dg < 90 && dg < dr });
+    }
+    if (!hits.length) return null;
+    let raised = (hits.find(h => h.raised) || {}).val, goal = (hits.find(h => h.goal) || {}).val;
+    if (raised == null && hits.length >= 2) raised = hits[0].val;
+    if (goal == null && hits.length >= 2) goal = Math.max(...hits.map(h => h.val));
+    if (!(raised >= 0) || raised > 1e9) return null;
+    const dm = t.match(/([\d,]{1,9})\s*(?:donations?|donors?|givers?|gifts?|supporters?)\b/i);
+    return { raised, goal: goal >= 1000 ? goal : state.goal, donors: dm ? Number(dm[1].replace(/,/g, "")) : null };
+  }
+
+  // First choice: data.json next to this page, refreshed by the scheduled job on the host.
+  async function checkLocal() {
+    try {
+      const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return false;
+      const d = await res.json();
+      if (typeof d.raised !== "number") return false;
+      const age = Date.now() - new Date(d.updatedAt || 0).getTime();
+      if (d.source === "givesendgo" && age < 30 * 60000) {
+        apply({ raised: d.raised, goal: d.goal, donors: d.donors });
+        lastOk = new Date(d.updatedAt).getTime();
+        status("live · " + Math.round(age / 60000) + " min ago", "live");
+        return true;
+      }
+      if (!lastOk) apply({ raised: d.raised, goal: d.goal, donors: d.donors });
+    } catch (e) { /* no data.json here; fall through to the relays */ }
+    return false;
+  }
+
+  async function check() {
+    if (DEMO) { apply({ raised: state.raised + Math.round(50 + Math.random() * 900), goal: state.goal, donors: (state.donors || 1800) + 1 }); lastOk = Date.now(); return; }
+    if (await checkLocal()) return;
+    for (let i = 0; i < RELAYS.length; i++) {
+      const idx = (relay + i) % RELAYS.length;
+      try {
+        const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
+        const res = await fetch(RELAYS[idx](CAMPAIGN), { signal: ctl.signal, cache: "no-store" });
+        clearTimeout(to);
+        if (!res.ok) throw new Error(res.status);
+        const parsed = parseCampaign(await res.text());
+        if (!parsed) throw new Error("no figure");
+        relay = idx; lastOk = Date.now();
+        apply(parsed); status("live · just now", "live");
+        return;
+      } catch (e) { /* try the next relay */ }
+    }
+    status(lastOk ? "last read " + Math.round((Date.now() - lastOk) / 60000) + " min ago" : "waiting for GiveSendGo…", lastOk ? "" : "err");
+  }
+
+  function apply(p) {
+    const prev = state.raised;
+    const next = {
+      raised: locked.raised ? state.raised : p.raised,
+      goal:   locked.goal   ? state.goal   : (p.goal || state.goal),
+      donors: locked.donors ? state.donors : (p.donors != null ? p.donors : state.donors)
+    };
+    const changed = next.raised !== state.raised || next.goal !== state.goal || next.donors !== state.donors;
+    state = next;
+    if (changed) render(prev);
+  }
+
+  render(0);
+  setTimeout(check, 800);
+  setInterval(check, INTERVAL);
+})();
+</script>
+</body>
+</html>
